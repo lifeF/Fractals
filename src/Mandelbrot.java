@@ -1,10 +1,6 @@
 
-import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
-import java.io.File;
 
 /**
  * UNIVERSITY OF PERADENIYA 
@@ -17,13 +13,13 @@ import java.io.File;
  */
 //------------------------------------------------------------------------------
 
-public class Mandelbrot extends Fractals {
+public class Mandelbrot extends FractralFrame {
     //Setup Mandelbrot set
-    private double [] realRange;
-    private double [] imagRange;
-    private int iterations;
-    private int width;
-    private int height;
+    private final double [] realRange;
+    private final double [] imagRange;
+    private final int iterations;
+    private final int width;
+    private final int height;
     
 //Constructor 
 //******************************************************************************
@@ -53,58 +49,62 @@ public class Mandelbrot extends Fractals {
     
 //Methods
 //******************************************************************************
-    public void MandelbroPatten(Graphics g , int itaration){
-        int width1 =width;
-        int height1 =height;
-        BufferedImage img =new BufferedImage(width1,height1,BufferedImage.TYPE_INT_ARGB);
-        File f =null;
+    public void MandelbroPatten(Graphics g , int itaration) {
+
+        int [] p1 = {0,0};
+        int [] p2 = {400,0};
+        int [] p3 = {0,400};
+        int [] p4 = {400,400};
+        int [] p5 = {800,400};
+        int [] p6 = {400,800};
+        int [] p7 = {800,800};
         
-        ComplexCanvas CC=new ComplexCanvas(width, height,realRange,imagRange);
+        /*
+        *   Threads layerout
         
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
+            P1 ---- P2 ---- _
+            |   T1  |   T4  |
+            P3 ---- P4 ---- P5
+            |   T2  |   T3  |
+            _  ---- P6 ---- P7
+        
+          P - Point 
+          T - Thread 
+        */
+                   
+        //double [] realRangeIN =this; // Range for Real
+        //double [] imagRangeIN ={0,1}; // Range for Imaginary
                 
-                double realPart=CC.genarateRealPart(x);
-                double imgPart=CC.genareteImgPart(y);
-                
-                double Zreal=realPart;
-                double Zimg=imgPart;
-               
-                int n=0;
-                double newimgPart;
-                double newRealPart;
-                while(n<itaration){
-                    
-                    newimgPart  = (2*(Zreal*Zimg) + imgPart);//new Imaginary Part
-                    newRealPart = ((Zreal*Zreal ) -(Zimg*Zimg) + realPart); // new real part
-                    
-                    Zreal=(newRealPart);
-                    Zimg=(newimgPart);
-                    
-                    if((Zreal*Zreal + Zimg*Zimg)>4){//Check Abs(Znew)>2
-                        break;
-                    }
-                    n++;
-                }
-
-                    float Brightness = n <itaration  ? 1f : 0;
-                    float Hue = (n%256)/255.0f;
-                    Color color = Color.getHSBColor((float)Hue, 1, Brightness);
-
-                    img.setRGB(x,y,color.getRGB());
-
-                    }
-            }
-            try{
-                if(img != null){
-                    g.drawImage(img, 0, 0, this);
-                }
-                //ImageIO.write(img,"gif",f);
-            }
-            catch(Exception e){
-                System.out.println(e);
-            }
-        }
+        ComplexCanvas CC=new ComplexCanvas(800, 800,realRange,imagRange);
+        
+         MandThread t1=new MandThread(p1,p4,CC,itaration);
+         MandThread t2=new MandThread(p2,p5,CC,itaration);
+         MandThread t3=new MandThread(p3,p6,CC,itaration);
+         MandThread t4=new MandThread(p4,p7,CC,itaration);
+      
+         // Run 4 threads togather
+         t1.start();
+         t2.start();
+         t3.start();
+         t4.start();
+         
+         try{
+            t1.join();
+            t2.join();
+            t3.join();
+            t4.join();
+         }
+         
+         catch(InterruptedException e){
+         
+         }
+         finally{
+             BufferedImage image=MandThread.getValue();
+             g.drawImage(image, 0, 0, this);
+         }
+         
+      
+    }
 //******************************************************************************
         
 }// Class End

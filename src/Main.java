@@ -1,4 +1,3 @@
-import java.awt.Component;
 import javax.swing.JFrame;
 
 /**
@@ -24,13 +23,14 @@ public class Main {//Main Methods
         double [] DefC ={-0.4, 0.6};// C Value
         //**********************************************************************
         
-        
-            JFrame Frame =new JFrame();//new frame create
-            Frame.setResizable(false);
+            // New Frame Create 
+            JFrame Frame =new JFrame();
+            Frame.setResizable(false); 
             Frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             
-            //Add JPanel to JFrame
+            //Add JPanel to JFrame (Considering User input and Add MandelBolt or Julia panal )
             //******************************************************************
+            try{
             if(args[0].equals("Mandelbrot")){
                 if(args.length>2 && args.length<6 ){
                     realRange[0]=Double.parseDouble(args[1]);
@@ -58,7 +58,7 @@ public class Main {//Main Methods
             }
             if(args[0].equals("Julia")){
                 
-                try{
+                
                     if(args.length>2 ){
                        DefC[0]=Double.parseDouble(args[1]);
                        DefC[0]=Double.parseDouble(args[2]);
@@ -70,10 +70,12 @@ public class Main {//Main Methods
                     Frame.setTitle(args[0]+" Set");
                     Frame.pack();
                     Frame.setVisible(true);
-                }
-                catch (Exception e){
-                    System.err.println("Your inputs have Problem");
-                }
+                
+                
+            }
+            }
+            catch (NumberFormatException e){
+                System.err.println("Your inputs have Problem");
             }
             
             //******************************************************************     

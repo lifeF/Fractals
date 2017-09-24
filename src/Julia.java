@@ -1,11 +1,6 @@
 
-import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import static java.lang.Math.abs;
 
 /**
  * UNIVERSITY OF PERADENIYA 
@@ -17,18 +12,20 @@ import static java.lang.Math.abs;
  * 
  */
 //------------------------------------------------------------------------------
-public class Julia extends Fractals {
-    // Setup julia set
-    private double [] realRange;
-    double [] C;
-    private double [] imagRange;
-    private int iterations;
-    private int width;
-    private int height;
+public class Julia extends FractralFrame {
+    
+    // Setup julia set Panel
+    private final double [] realRange;
+    private final double [] C;
+    private final double [] imagRange;
+    private final int iterations;
+    private final int width; // panel Width
+    private final int height;// panel Height
     
 //Constractor
 //******************************************************************************    
     public Julia(int width, int height,double [] realRange, double [] imagRange,double [] C,int iterations){
+        
         super(width, height);
         this.width  = width;
         this.height =height;
@@ -36,11 +33,10 @@ public class Julia extends Fractals {
         this.imagRange=imagRange;
         this.iterations=iterations;
         this.C=C;
+       
         
     }
 //******************************************************************************
-
-    
     @Override
     public void paintComponent(Graphics g) { 
         // call paintComponent from parent class 
@@ -54,48 +50,61 @@ public class Julia extends Fractals {
 //******************************************************************************    
     private  void JuliaPatten(Graphics g ,int itaration){
         
-        BufferedImage img =new BufferedImage(width,height,BufferedImage.TYPE_INT_ARGB);
-        //File f =null;
-        ComplexCanvas CC=new ComplexCanvas(width, height,realRange,imagRange);
-        //Assign C value
-         double realPart= C[0];
-         double imgPart = C[1];
+        //Define Points (Break the area os Panel)
+        int [] p1 = {0,0};
+        int [] p2 = {400,0};
+        int [] p3 = {0,400};
+        int [] p4 = {400,400};
+        int [] p5 = {800,400};
+        int [] p6 = {400,800};
+        int [] p7 = {800,800};
+        
+        /*
+        *   Threads LayerOut
+        
+            P1 ---- P2 ---- _
+            |   T1  |   T4  |
+            P3 ---- P4 ---- P5
+            |   T2  |   T3  |
+            _  ---- P6 ---- P7
+        
+          P - Point 
+          T - Thread 
+        */
+       
+        //Create Complex Canvas
+        ComplexCanvas CC=new ComplexCanvas(800, 800,realRange,imagRange); 
+        
+        // Create Julia Threads for each Region 
+         JuliaThread t1=new JuliaThread(p1,p4,CC,this.C,itaration);
+         JuliaThread t2=new JuliaThread(p2,p5,CC,this.C,itaration);
+         JuliaThread t3=new JuliaThread(p3,p6,CC,this.C,itaration);
+         JuliaThread t4=new JuliaThread(p4,p7,CC,this.C,itaration);
+      
+         // Run four threads 
+         t1.start();
+         t2.start();
+         t3.start();
+         t4.start();
          
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                   
-                double Zreal=CC.genarateRealPart(x);
-                double Zimg=CC.genareteImgPart(y);
-
-                int n=0;
-
-                while(n<itaration){
-                    double newimgPart  = (2*(Zreal*Zimg) + imgPart);
-                    double newRealPart = ((Zreal*Zreal ) -(Zimg*Zimg) + realPart);
-                    Zreal=(newRealPart);
-                    Zimg=(newimgPart);
-                    if(abs(Zreal*Zreal + Zimg*Zimg)>4){
-                        break;
-                    }
-                    n++;
-                }
-                
-                float Brightness = n <itaration  ? 1f : 0;
-                float Hue = (n%256)/255.0f;
-                Color c1 = Color.getHSBColor((float)Hue, 1, Brightness);
-                img.setRGB(x,y,c1.getRGB());
-                
-               
-            }
-        }
-        try{
-            if(img != null){
-                g.drawImage(img, 0, 0, this);
-            }
-        }
-        catch(Exception e){
-            System.out.println(e);
-        }
+         try{
+            // join Threads 
+            t1.join();
+            t2.join();
+            t3.join();
+            t4.join();
+         }
+         
+         catch(InterruptedException e){
+             // if need Error msg for Exception Setup it ( Kalana )
+         }
+         finally{
+             // get Genarated image from JuliaThread Class
+             BufferedImage image=JuliaThread.getValue();
+             
+             // Set Genarated Image to Panel face 
+             g.drawImage(image, 0, 0, this);
+         }
     }
 //******************************************************************************
    
